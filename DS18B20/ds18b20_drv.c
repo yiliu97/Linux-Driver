@@ -108,7 +108,6 @@ static void write_byte(unsigned char data)
 		//each writing period is 60us
 		udelay(60);
 
-
 		gpio_set_value(GPIO_DQ,1);
 
 		udelay(15);
@@ -216,17 +215,17 @@ static int DS18B20_read(struct file *filp, char *buffer, size_t count, loff_t *p
     write_byte(0xbe);
 	
 	//read data
-	//least significant bit comes first
+	//least significant 8 bits comes first
     lsb_val = read_byte();
 
-	//most significant bit
+	//most significant 8 bits
 	msb_val=read_byte();
 	
 	//convert the data
 	//in this driver, only the interger part is displayed
 	tmp_buf= (msb_val<<8) | lsb_val;
 
-	//if the temperature is negative, the highest two bytes are ff(i.e. not smaller than 65280)
+	//if the temperature is negative, the highest two digits are ff(e.g. for -1°C, tmp_buf= ffef)
 	if(tmp_buf >= 65280)
 	{
 		tmp_data[0]= -1;
