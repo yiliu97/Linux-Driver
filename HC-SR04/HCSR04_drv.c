@@ -55,6 +55,7 @@ int HCSR04_open(struct inode *node, struct file *file)
 int HCSR04_release(struct inode *node, struct file *file)
 {
 	printk(KERN_INFO"module release\n");
+	//free gpios
 	gpio_free(GPIO_ECHO); 
 	gpio_free(GPIO_TRIG); 
 	return 0;
@@ -105,7 +106,7 @@ ssize_t HCSR04_read(struct file *file, char __user *user_buff, size_t size, loff
 	return size;
 }
 
-//[2]
+//define file operations
 static struct file_operations HCSR04_ops = {
 	.owner = THIS_MODULE,
 	.open = HCSR04_open,
@@ -113,27 +114,28 @@ static struct file_operations HCSR04_ops = {
 	.release = HCSR04_release,
 };
 
-//[1] 定义混杂设备
 
+//create a misc device
 static struct miscdevice HC_misc = {
 		.minor = MISC_DYNAMIC_MINOR,
 		.name = DEVICE_NAME,
 		.fops = &HCSR04_ops,
 };
 
-static int __init HCSR04_init(void) //执行insmod执行一次
+//initialization
+static int __init HCSR04_init(void) 
 {
 	int ret;
 	 
-	printk(KERN_INFO"HCSR04_init\n");
+	printk(KERN_INFO"HCSR04 init\n");
 	
 	
 	
-	//[3] 注册混杂设备
+	//register the misc dev
 	 ret = misc_register(&HC_misc);
 	  if(ret < 0)
 	  {
-		  printk(KERN_INFO"misc_register error\n");
+		  printk(KERN_INFO"misc dev register error\n");
 		  return ret;
 		  
 	  }
@@ -141,12 +143,15 @@ static int __init HCSR04_init(void) //执行insmod执行一次
 	return 0;
 
 }
+
+//exit
 static void __exit HCSR04_exit(void)
 {
-	printk(KERN_INFO"gec6818key_exit\n");
+	printk(KERN_INFO"HCSR04 exit\n");
+	//free gpios
 	gpio_free(GPIO_TRIG); 
 	gpio_free(GPIO_ECHO); 
-	//[4] 注销混杂设备
+	//unregister the device
 	misc_deregister(&HC_misc);
 }
 
